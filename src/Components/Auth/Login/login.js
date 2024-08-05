@@ -2,20 +2,32 @@ import { Button, Form } from "react-bootstrap";
 import { supabase } from "../../../Helpers/supabase";
 import { useState, useEffect, useContext } from "react";
 import { SessionContext } from "../../../Helpers/SessionProvider";
+import { redirect, useNavigate } from "react-router-dom";
 
 export default function Login() {
     const [email, setEmail] = useState('');
     const [pass, setPass] = useState('');
     const {session, setSession} = useContext(SessionContext)
+    const navigate = useNavigate()
 
     async function signIn() {
         const {data, error} = await supabase.auth.signInWithPassword({
             email: email,
             password: pass,
+        }).then((data) => {
+            if(data) {
+                setSession(data);
+                alert('Success')
+                console.log(data)
+                navigate('/home')
+            }
+        }).catch(error => {
+            console.error(error)
+            alert(error.message)
         })
 
-        if (data) {
-            setSession(data.session)
+        if(data) {
+            setSession(data.session);
         }
     }
 
@@ -26,7 +38,6 @@ export default function Login() {
     const handlePassChange = (event) => {
         setPass(event.target.value)
     }
-
 
     return (<>
         <Form onSubmit={signIn}>
