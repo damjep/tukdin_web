@@ -1,54 +1,59 @@
 import { Button, Form } from "react-bootstrap";
 import { supabase } from "../../../Helpers/supabase";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useRef } from "react";
 import { SessionContext } from "../../../Helpers/SessionProvider";
-import { redirect, useNavigate } from "react-router-dom";
+import {useNavigate } from "react-router-dom";
+import { useAuth } from "../../../Helpers/AuthProvider";
 
-export default function Login() {
+export const Login = () =>  {
+    const emailRef = useRef(null)
+    const passRef = useRef(null)
     const [email, setEmail] = useState('');
     const [pass, setPass] = useState('');
-    const {session, setSession} = useContext(SessionContext)
+    const {setSession} = useContext(SessionContext)
     const navigate = useNavigate()
+    const {login} = useAuth();
+    const[loading, setLoading] = useState(false);
 
-    async function signIn() {
-        const {data, error} = await supabase.auth.signInWithPassword({
-            email: email,
-            password: pass,
-        }).then((data) => {
-            if(data) {
-                setSession(data);
-                alert('Success')
-                console.log(data)
-                navigate('/home')
-            }
-        }).catch(error => {
-            console.error(error)
-            alert(error.message)
-        })
+    const signIn = async(e) => {
+        e.preventDefault();
 
-        if(data) {
-            setSession(data.session);
+        try {
+            setLoading(true);
+            const{
+                data: {user, session},
+                error
+            } = await login(emailRef.current.value, passRef.current.value);
+            if (error) console.log(error.message);
+            if (user && session) navigate('/');
+        } catch (e) {
+            console.log(e.message);
         }
+
+        setLoading(false);
     }
 
     const handleEmailChange = (event) => {
-        setEmail(event.target.value)
+        setEmail(event.target?.value)
     }
 
     const handlePassChange = (event) => {
-        setPass(event.target.value)
+        setPass(event.target?.value)
     }
 
+    useEffect(() => {
+        
+    })
     return (<>
         <Form onSubmit={signIn}>
             <div>
                 <Form.Label>Email</Form.Label>
-                <Form.Control type="email" placeholder="Enter your email" onChange={handleEmailChange}/>
+                <Form.Control type="email" placeholder="Enter your email" ref={emailRef} onChange={handleEmailChange}/>
             </div>
 
             <div>
                 <Form.Label>Password</Form.Label>
-                <Form.Control type="password" placeholder="Enter your password" onChange={handlePassChange}/>
+                <Form.Control type="password" placeholder="Enter your password" ref={passRef} onChange={handlePassChange}/>
             </div>
 
             <Button type="submit" >
