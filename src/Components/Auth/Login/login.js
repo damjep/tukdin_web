@@ -16,6 +16,8 @@ export default function Login() {
 
         if (data) {
             setSession(data.session)
+        } else {
+            console.log(error)
         }
     }
 
